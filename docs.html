@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Документация — NeuroSwitch</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { max-width: 900px; margin: 40px auto; font:16px/1.7 system-ui,Arial,sans-serif; background:#f8f9fc; color:#222; }
+    h1, h2, h3 { color:#4cc9f0;}
+    pre { background:#e9f5fd; padding:12px 18px; border-radius:10px; overflow:auto;}
+    code { color:#2d5a8a;}
+  </style>
+</head>
+<body>
+<h1>Документация по API NeuroSwitch</h1>
+<p>Последнее обновление: 2025</p>
+
+<h2>Базовый URL</h2>
+<pre><code>https://api.neuroswitch.ru/v1/</code></pre>
+
+<h2>Аутентификация</h2>
+<p>В каждом запросе передавайте заголовок <b>Authorization: Bearer sk-neuroswitch-xxx</b></p>
+
+<h2>Пример (Python)</h2>
+<pre><code>from openai import OpenAI
+client = OpenAI(api_key="sk-neuroswitch-xxx", base_url="https://api.neuroswitch.ru/v1/")
+res = client.chat.completions.create(
+  model="gpt-4o-mini",
+  messages=[{"role":"user","content":"Пример запроса"}],
+  max_tokens=400
+)
+print(res.choices[0].message)</code></pre>
+
+<h2>Поддерживаемые модели</h2>
+<ul>
+  <li>OpenAI: gpt-4o, gpt-4o-mini, gpt-3.5-turbo и др.</li>
+  <li>Google: Gemini 2.5, Gemini Pro</li>
+  <li>DeepSeek: r1, r1-fast, chat</li>
+  <li>Anthropic: Claude 3.5/3.7</li>
+  <li>Meta: Llama 3/4</li>
+  <li>Perplexity, xAI Grok и др.</li>
+</ul>
+
+<h2>Баланс и статистика</h2>
+<pre><code>GET /neuroswitch/balance
+GET /neuroswitch/stats</code></pre>
+
+<h2>Контакты для поддержки</h2>
+<p>Пишите на <a href="mailto:hello@neuroswitch.ru">hello@neuroswitch.ru</a></p>
+
+</body>
+</html>
