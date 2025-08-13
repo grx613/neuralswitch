@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>NeuroSwitch — единый API к OpenAI, Gemini, DeepSeek, Claude без VPN. Оплата в рублях.</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <style>
+    :root{
+      --bg:#0b0f14;
+      --bg-2:#0f141b;
+      --card:#121923;
+      --text:#e6edf3;
+      --muted:#9fb0c0;
+      --accent:#4cc9f0;
+      --accent-2:#a855f7;
+      --ok:#22c55e;
+      --danger:#ef4444;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --radius:14px;
+      --radius-sm:10px;
+      --max:1180px;
+      --code:#0e1116;
+      --code-border:#1b2330;
+      --table-border:#1a2430;
+      --grad: conic-gradient(from 180deg at 50% 50%, #5ef1ff 0deg, #5ef1ff 40deg, #8b5cf6 140deg, #22c55e 220deg, #5ef1ff 360deg);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:radial-gradient(1200px 700px at 80% -200px, rgba(76,201,240,.08), transparent),radial-gradient(1200px 700px at 0% -300px, rgba(168,85,247,.09), transparent), var(--bg); color:var(--text); font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif}
+    a{color:var(--accent); text-decoration:none}
+    a:hover{opacity:.9}
+    .container{max-width:var(--max); margin:0 auto; padding:0 20px}
+    nav{position:sticky; top:0; z-index:50; background:linear-gradient(180deg, rgba(11,15,20,.95), rgba(11,15,20,.75)); backdrop-filter:saturate(140%) blur(8px); border-bottom:1px solid rgba(255,255,255,.06)}
+    .nav-wrap{display:flex; align-items:center; justify-content:space-between; height:64px}
+    .brand{display:flex; align-items:center; gap:12px}
+    .logo{width:28px; height:28px; background:var(--grad); border-radius:8px; box-shadow: var(--shadow)}
+    .brand b{font-weight:700; letter-spacing:.2px}
+    .nav-links{display:flex; gap:18px; flex-wrap:wrap}
+    .nav-links a{color:var(--text); opacity:.9}
+    .btn{display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:#0b0f14; padding:12px 16px; border-radius:10px; font-weight:700; border:none; cursor:pointer}
+    .btn.secondary{background:transparent; color:var(--text); border:1px solid rgba(255,255,255,.12)}
+    header.hero{padding:64px 0 40px}
+    .hero-grid{display:grid; grid-template-columns:1.2fr .8fr; gap:30px}
+    .chip{display:inline-flex; align-items:center; gap:10px; padding:8px 12px; border:1px solid rgba(255,255,255,.12); border-radius:999px; color:var(--muted)}
+    h1{font-size:40px; line-height:1.15; margin:18px 0}
+    p.lead{color:var(--muted); font-size:18px}
+    .hero-card{background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); padding:18px}
+    .hero-actions{display:flex; gap:12px; margin-top:18px; flex-wrap:wrap}
+    section{padding:64px 0}
+    h2{font-size:28px; margin:0 0 18px}
+    .muted{color:var(--muted)}
+    .cards{display:grid; grid-template-columns:repeat(3, 1fr); gap:16px}
+    .card{background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); padding:18px}
+    .card h3{margin:0 0 8px; font-size:18px}
+    .flow{display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; align-items:stretch}
+    .flow .step{background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); padding:16px; text-align:center}
+    .flow .arrow{display:flex; align-items:center; justify-content:center; color:var(--muted)}
+    .code-tabs{margin-top:12px}
+    .tabbar{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px}
+    .tabbar button{background:transparent; color:var(--text); border:1px solid rgba(255,255,255,.12); padding:6px 10px; border-radius:8px; cursor:pointer}
+    .tabbar button.active{background:rgba(255,255,255,.08)}
+    pre{background:var(--code); color:#dce7f3; border:1px solid var(--code-border); border-radius:var(--radius-sm); padding:14px; overflow:auto; position:relative}
+    .copy{position:absolute; top:8px; right:8px; font-size:12px; border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.06); border-radius:8px; padding:6px 8px; cursor:pointer}
+    table{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border-radius:12px; border:1px solid var(--table-border)}
+    th, td{padding:12px 10px; text-align:left; border-bottom:1px solid var(--table-border)}
+    tr:last-child td{border-bottom:none}
+    .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+    .note{font-size:14px; color:var(--muted)}
+    .faq{display:grid; gap:10px}
+    details{background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); padding:14px}
+    summary{cursor:pointer; font-weight:600}
+    footer{border-top:1px solid rgba(255,255,255,.08); padding:30px 0 60px}
+    .badge{display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:4px 8px; border:1px solid rgba(255,255,255,.12); border-radius:999px; color:var(--muted)}
+    .price-good{color:var(--ok); font-weight:700}
+    .chip.online{border-color:rgba(80,200,255,.45); color:#b6ecff}
+    @media (max-width:980px){
+      .hero-grid{grid-template-columns:1fr}
+      .flow{grid-template-columns:1fr}
+      .cards{grid-template-columns:1fr}
+      .grid-2{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="container nav-wrap">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <b>NeuroSwitch</b>
+        <span class="badge">Оплата в ₽ • Без VPN</span>
+      </div>
+      <div class="nav-links">
+        <a href="#how">Как это работает</a>
+        <a href="#start">Как начать</a>
+        <a href="#pricing">Модели и цены</a>
+        <a href="#images">Картинки</a>
+        <a href="#tts">Речь</a>
+        <a href="#asr">Распознавание</a>
+        <a href="#emb">Embeddings</a>
+        <a href="#faq">FAQ</a>
+        <a href="#docs">Документация</a>
+      </div>
+      <div>
+        <a class="btn secondary" href="#contact">Связаться</a>
+        <a class="btn" href="#start">Подключить API</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div>
+        <span class="chip">Единый шлюз к ведущим ИИ</span>
+        <h1>Доступ к OpenAI, Gemini, DeepSeek, Claude в России — без VPN и по лучшим ценам</h1>
+        <p class="lead">Один совместимый с OpenAI API, мгновенное переключение моделей, тарификация в рублях. Идеально для продуктов, интеграций и R&D.</p>
+        <div class="hero-actions">
+          <a class="btn" href="#start">Получить ключ API</a>
+          <a class="btn secondary" href="#docs">Открыть документацию</a>
+        </div>
+        <p class="note" style="margin-top:12px">Мы не аффилированы с OpenAI, Google, Anthropic, xAI, Meta и Perplexity. Марки используются для описания совместимости.</p>
+      </div>
+      <div class="hero-card">
+        <div class="grid-2">
+          <div>
+            <div class="badge">Base URL</div>
+            <pre><code>https://api.neuroswitch.ru/v1/</code></pre>
+          </div>
+          <div>
+            <div class="badge">Формат</div>
+            <pre><code>Совместим с OpenAI SDK</code></pre>
+          </div>
+        </div>
+        <div class="code-tabs">
+          <div class="tabbar">
+            <button class="active" data-tab="js1">JS</button>
+            <button data-tab="py1">Python</button>
+            <button data-tab="curl1">Curl</button>
+          </div>
+          <div data-panel="js1">
+            <pre><button class="copy">Копировать</button><code>import OpenAI from 'openai';
+const client = new OpenAI({ apiKey: 'sk-neuroswitch-xxx', baseURL: 'https://api.neuroswitch.ru/v1/' });
+
+const chat = await client.chat.completions.create({
+  model: 'deepseek-r1',
+  messages: [{ role: 'user', content: 'Расскажи интересный факт о космосе' }],
+  max_tokens: 2000
+});
+console.log(chat.choices[0].message);</code></pre>
+          </div>
+          <div data-panel="py1" hidden>
+            <pre><button class="copy">Копировать</button><code>from openai import OpenAI
+client = OpenAI(api_key="sk-neuroswitch-xxx", base_url="https://api.neuroswitch.ru/v1/")
+
+res = client.chat.completions.create(
+  model="gpt-4o",
+  messages=[{"role":"user","content":"Переведи на английский: Привет, мир!"}],
+  max_tokens=512
+)
+print(res.choices[0].message)</code></pre>
+          </div>
+          <div data-panel="curl1" hidden>
+            <pre><button class="copy">Копировать</button><code>curl https://api.neuroswitch.ru/v1/chat/completions \
+  -H "Authorization: Bearer sk-neuroswitch-xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model":"gpt-4o-mini",
+    "messages":[{"role":"user","content":"Суммируй текст в 3 пункта"}],
+    "max_tokens": 400
+  }'</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section id="how">
+    <div class="container">
+      <h2>Простое использование</h2>
+      <p class="muted">Запросы идут через наши сервера к нужному провайдеру — вы работаете через единый, совместимый с OpenAI интерфейс.</p>
+      <div class="flow" style="margin-top:14px">
+        <div class="step"><b>Ваше приложение</b><br><span class="muted">Произвольный бэкенд/клиент</span></div>
+        <div class="arrow">→</div>
+        <div class="step"><b>HTTP-запрос</b><br><span class="muted">Формат OpenAI API</span></div>
+        <div class="arrow">→</div>
+        <div class="step"><b>Наш API</b><br><code>api.neuroswitch.ru/v1</code></div>
+        <div class="arrow">→</div>
+        <div class="step"><b>Провайдер</b><br><span class="muted">OpenAI, Google, DeepSeek, Anthropic…</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="start">
+    <div class="container">
+      <h2>Как начать работу?</h2>
+      <p class="muted">Пополните баланс от 250 ₽ и выберите удобный сценарий подключения к API.</p>
+      <div class="cards" style="margin-top:16px">
+        <div class="card">
+          <h3>Собственная программа</h3>
+          <p class="muted">Используйте SDK OpenAI, просто подмените baseURL и API-ключ. Все поддержанные модели — по одной схеме.</p>
+          <a class="btn secondary" href="#docs">Примеры кода</a>
+        </div>
+        <div class="card">
+          <h3>Сторонние инструменты</h3>
+          <p class="muted">Подставьте наш Base URL в конфиг вашего инструмента (например, LangChain, n8n, агенты).</p>
+          <a class="btn secondary" href="#docs">Гид по подключению</a>
+        </div>
+        <div class="card">
+          <h3>Встроенный веб-чат</h3>
+          <p class="muted">Быстро протестируйте модели без кода. Переключайте провайдеры в один клик.</p>
+          <span class="badge">Демо по запросу</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <div class="container">
+      <h2>Модели и цены</h2>
+      <p class="muted">Цены за 1 млн токенов. Точные тарифы и лимиты могут меняться ежемесячно.</p>
+
+      <div class="card" style="margin-top:14px">
+        <h3>Примеры тарифов</h3>
+        <table>
+          <thead>
+            <tr><th>Модель</th><th>Провайдер</th><th>Ввод</th><th>Вывод</th><th>Заметки</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>gpt-4o-mini</td><td>OpenAI</td><td class="price-good">14 ₽</td><td>108 ₽</td><td>Визуальные входы</td>
+            </tr>
+            <tr>
+              <td>gpt-4o</td><td>OpenAI</td><td>225 ₽</td><td>1800 ₽</td><td>Мультимодальная</td>
+            </tr>
+            <tr>
+              <td>deepseek-r1</td><td>DeepSeek</td><td>99 ₽</td><td>394 ₽</td><td>Reasoning</td>
+            </tr>
+            <tr>
+              <td>gemini-2.5-flash</td><td>Google</td><td>54 ₽</td><td>450 ₽</td><td>Быстрая</td>
+            </tr>
+            <tr>
+              <td>claude-3.7-sonnet</td><td>Anthropic</td><td>540 ₽</td><td>2700 ₽</td><td>Текст/код</td>
+            </tr>
+            <tr>
+              <td>llama-3.3-70b-instruct</td><td>Meta</td><td>22 ₽</td><td>54 ₽</td><td>Открытая</td>
+            </tr>
+            <tr>
+              <td class="chip online">sonar</td><td>Perplexity</td><td>180 ₽</td><td>180 ₽</td><td>Онлайн-поиск</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note" style="margin-top:8px">Онлайн‑модели выполняют веб‑поиск и имеют доп. стоимость за запрос. Указывайте max_tokens для корректной предавторизации и оценки.</p>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h3>Пример: чат и изображение</h3>
+        <div class="code-tabs">
+          <div class="tabbar">
+            <button class="active" data-tab="js2">JS</button>
+            <button data-tab="py2">Python</button>
+          </div>
+          <div data-panel="js2">
+            <pre><button class="copy">Копировать</button><code>import OpenAI from 'openai';
+const client = new OpenAI({ apiKey: 'sk-neuroswitch-xxx', baseURL: 'https://api.neuroswitch.ru/v1/' });
+
+// Чат
+const result = await client.chat.completions.create({
+  model: 'gpt-4o',
+  messages: [{ role:'user', content:'Составь план поездки в Ереван на 3 дня' }],
+  max_tokens: 800
+});
+console.log(result.choices[0].message);
+
+// Визуальный запрос
+const vision = await client.chat.completions.create({
+  model: 'gpt-4o-mini',
+  messages: [{
+    role:'user',
+    content:[
+      { type:'text', text:'Что на фото?' },
+      { type:'image_url', image_url:{ url:'https://images.unsplash.com/photo-1504208434309-cb69f4fe52b0', detail:'auto' } }
+    ]
+  }],
+  max_tokens: 400
+});</code></pre>
+          </div>
+          <div data-panel="py2" hidden>
+            <pre><button class="copy">Копировать</button><code>from openai import OpenAI
+client = OpenAI(api_key="sk-neuroswitch-xxx", base_url="https://api.neuroswitch.ru/v1/")
+res = client.chat.completions.create(
+  model="deepseek-chat",
+  messages=[{"role":"user","content":"Объясни бинарный поиск простым языком"}],
+  max_tokens=600
+)
+print(res.choices[0].message)</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="images">
+    <div class="container">
+      <h2>Генерация и редактирование картинок</h2>
+      <p class="muted">Создавайте изображения и редактируйте их слоями. Цена зависит от качества и разрешения.</p>
+      <div class="grid-2" style="margin-top:16px">
+        <div class="card">
+          <h3>Создание</h3>
+          <pre><button class="copy">Копировать</button><code>import OpenAI from 'openai';
+import fs from 'fs';
+const client = new OpenAI({ apiKey:'sk-neuroswitch-xxx', baseURL:'https://api.neuroswitch.ru/v1/' });
+
+const img = await client.images.generate({
+  model: 'gpt-image-1',
+  prompt: 'Иллюстрация: парящий город на закате в стиле synthwave',
+  size: '1024x1024',
+  output_format: 'png'
+});
+fs.writeFileSync('city.png', Buffer.from(img.data[0].b64_json, 'base64'));</code></pre>
+        </div>
+        <div class="card">
+          <h3>Редактирование</h3>
+          <pre><button class="copy">Копировать</button><code>const edit = await client.images.edit({
+  model: 'gpt-image-1',
+  prompt: 'Добавь неоновую вывеску на переднем плане',
+  image: [
+    await OpenAI.toFile(fs.createReadStream('city.png'), null, { type:'image/png' })
+  ],
+});
+fs.writeFileSync('city_edit.png', Buffer.from(edit.data[0].b64_json, 'base64'));</code></pre>
+          <p class="note">Текстовые и визуальные токены тарифицируются отдельно при редактировании.</p>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <table>
+          <thead><tr><th>Модель</th><th>Качество</th><th>Пример цены</th></tr></thead>
+          <tbody>
+            <tr><td>gpt-image-1</td><td>low / medium / high</td><td>от 3 ₽ до 56 ₽ за изображение</td></tr>
+            <tr><td>DALL·E 3</td><td>standard / hd</td><td>от 7 ₽ до 22 ₽ за изображение</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="tts">
+    <div class="container">
+      <h2>Генерация речи из текста (TTS)</h2>
+      <p class="muted">Голоса студийного качества с управлением стилем и темпом. Цена — за 1 млн символов.</p>
+      <div class="grid-2" style="margin-top:16px">
+        <div class="card">
+          <h3>JS пример</h3>
+          <pre><button class="copy">Копировать</button><code>import OpenAI from 'openai';
+import fs from 'fs';
+const client = new OpenAI({ apiKey:'sk-neuroswitch-xxx', baseURL:'https://api.neuroswitch.ru/v1/' });
+
+const audio = await client.audio.speech.create({
+  model: 'gpt-4o-mini-tts',
+  voice: 'sage',
+  input: 'Привет! Это демо синтеза речи от NeuroSwitch.',
+  instructions: 'Дружелюбный тон, средняя скорость'
+});
+const buf = Buffer.from(await audio.arrayBuffer());
+await fs.promises.writeFile('voice.mp3', buf);</code></pre>
+        </div>
+        <div class="card">
+          <h3>Пример цен</h3>
+          <table>
+            <thead><tr><th>Модель</th><th>Цена</th></tr></thead>
+            <tbody>
+              <tr><td>gpt-4o-mini-tts</td><td>≈ 2700 ₽ за 1М символов</td></tr>
+              <tr><td>tts-1 / tts-1-hd</td><td>≈ 2700–5400 ₽ за 1М символов</td></tr>
+            </tbody>
+          </table>
+          <p class="note">Фактические цены могут отличаться в зависимости от голоса и формата.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="asr">
+    <div class="container">
+      <h2>Распознавание речи (ASR)</h2>
+      <p class="muted">Загрузка аудио и быстрая транскрибация. Цена — за 60 секунд аудио.</p>
+      <div class="grid-2" style="margin-top:16px">
+        <div class="card">
+          <h3>Пример</h3>
+          <pre><button class="copy">Копировать</button><code>import OpenAI from 'openai';
+import fs from 'fs';
+const client = new OpenAI({ apiKey:'sk-neuroswitch-xxx', baseURL:'https://api.neuroswitch.ru/v1/' });
+
+const tr = await client.audio.transcriptions.create({
+  model: 'whisper-1',
+  file: fs.createReadStream('speech.mp3')
+});
+console.log(tr.text);</code></pre>
+        </div>
+        <div class="card">
+          <h3>Пример цен</h3>
+          <table>
+            <thead><tr><th>Модель</th><th>Цена/мин</th></tr></thead>
+            <tbody>
+              <tr><td>gpt-4o-mini-transcribe</td><td>≈ 0.54 ₽</td></tr>
+              <tr><td>gpt-4o-transcribe</td><td>≈ 1.08 ₽</td></tr>
+              <tr><td>whisper-1</td><td>≈ 1.08 ₽</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="emb">
+    <div class="container">
+      <h2>Embeddings</h2>
+      <p class="muted">Качественные векторные представления для поиска и RAG. Цена — за 1 млн токенов.</p>
+      <div class="grid-2" style="margin-top:16px">
+        <div class="card">
+          <h3>Пример</h3>
+          <pre><button class="copy">Копировать</button><code>import OpenAI from 'openai';
+const client = new OpenAI({ apiKey:'sk-neuroswitch-xxx', baseURL:'https://api.neuroswitch.ru/v1/' });
+
+const emb = await client.embeddings.create({
+  model: 'text-embedding-3-large',
+  input: 'Насколько быстро летит свет?'
+});
+console.log(emb.data[0].embedding.length);</code></pre>
+        </div>
+        <div class="card">
+          <h3>Пример цен</h3>
+          <table>
+            <thead><tr><th>Модель</th><th>Цена</th></tr></thead>
+            <tbody>
+              <tr><td>text-embedding-3-small</td><td>≈ 3.6 ₽ / 1М токенов</td></tr>
+              <tr><td>text-embedding-3-large</td><td>≈ 23.4 ₽ / 1М токенов</td></tr>
+            </tbody>
+          </table>
+          <p class="note">Оптимальная модель зависит от точности и бюджета.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="container">
+      <h2>FAQ</h2>
+      <div class="faq">
+        <details open>
+          <summary>Работаете с бизнесом? Чеки и закрывающие документы?</summary>
+          <p class="muted">Да. Оплата на расчётный счёт, полный комплект документов, ЭДО и скидки на объёмы.</p>
+        </details>
+        <details>
+          <summary>Как работает предавторизация по max_tokens?</summary>
+          <p class="muted">Перед запросом мы проверяем баланс на максимально дорогой сценарий, исходя из указанного max_tokens. Фактическая стоимость считается по результату генерации. Если не задавать max_tokens — используется максимум контекста модели.</p>
+        </details>
+        <details>
+          <summary>Почему «размышляющие» модели иногда молчат?</summary>
+          <p class="muted">Если max_tokens слишком мал, все токены уходят на внутренние рассуждения, а на ответ не остаётся. Рекомендуем ≥ 50000 для reasoning‑семейств.</p>
+        </details>
+        <details>
+          <summary>Есть ли API для баланса и статистики?</summary>
+          <pre><code>GET https://api.neuroswitch.ru/v1/neuroswitch/balance
+GET https://api.neuroswitch.ru/v1/neuroswitch/stats
+Authorization: Bearer sk-neuroswitch-xxx</code></pre>
+        </details>
+        <details>
+          <summary>Лимиты запросов</summary>
+          <p class="muted">Зависят от баланса и пересчитываются каждые 10 секунд. Увеличьте баланс для повышенного трафика.</p>
+        </details>
+        <details>
+          <summary>Интеграция с n8n</summary>
+          <p class="muted">Выберите «OpenAI» в n8n, подставьте наш Base URL и токен.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section id="docs">
+    <div class="container">
+      <h2>Документация</h2>
+      <p class="muted">Подробные гайды по моделям, потокам, аудио и биллингу.</p>
+      <div class="cards" style="margin-top:12px">
+        <div class="card">
+          <h3>Быстрый старт</h3>
+          <p class="muted">10 минут до первого ответа. Подключение SDK, ключи, типовые ошибки.</p>
+          <a class="btn secondary" href="#">Открыть</a>
+        </div>
+        <div class="card">
+          <h3>Справочник моделей</h3>
+          <p class="muted">Фичи, ограничения и примеры для каждой модели.</p>
+          <a class="btn secondary" href="#">Открыть</a>
+        </div>
+        <div class="card">
+          <h3>Практика RAG</h3>
+          <p class="muted">Векторные базы, чанкинг, перезапросы и оценка качества.</p>
+          <a class="btn secondary" href="#">Открыть</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer id="contact">
+    <div class="container">
+      <div class="grid-2">
+        <div>
+          <div class="brand">
+            <div class="logo" aria-hidden="true"></div>
+            <b>NeuroSwitch</b>
+          </div>
+          <p class="muted" style="margin-top:8px">Используйте ведущие модели ИИ без VPN, с оплатой в рублях. Единый API и прозрачные тарифы.</p>
+          <div class="hero-actions" style="margin-top:8px">
+            <a class="btn" href="#start">Подключить API</a>
+            <a class="btn secondary" href="mailto:support@neuroswitch.ru">support@neuroswitch.ru</a>
+          </div>
+        </div>
+        <div>
+          <h3 style="margin:0 0 8px; font-size:18px">Ссылки</h3>
+          <div class="nav-links" style="padding-top:6px">
+            <a href="#pricing">Прайс</a>
+            <a href="#docs">Документация</a>
+            <a href="#faq">FAQ</a>
+            <a href="#">Пользовательское соглашение (PDF)</a>
+            <a href="#">Политика конфиденциальности (PDF)</a>
+          </div>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:18px">© 2025 NeuroSwitch</p>
+    </div>
+  </footer>
+
+  <script>
+    // Tabs
+    document.querySelectorAll('.tabbar').forEach(bar=>{
+      bar.addEventListener('click', (e)=>{
+        if(e.target.tagName!=='BUTTON') return;
+        const tab = e.target.dataset.tab;
+        const parent = bar.parentElement;
+        bar.querySelectorAll('button').forEach(b=>b.classList.toggle('active', b===e.target));
+        parent.querySelectorAll('[data-panel]').forEach(p=>p.hidden = p.dataset.panel !== tab);
+      });
+    });
+    // Copy buttons
+    document.querySelectorAll('pre .copy').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const code = btn.parentElement.querySelector('code').innerText;
+        try { await navigator.clipboard.writeText(code); btn.textContent='Скопировано'; setTimeout(()=>btn.textContent='Копировать',1500); }
+        catch{ btn.textContent='Ошибка'; setTimeout(()=>btn.textContent='Копировать',1500); }
+      });
+    });
+  </script>
+</body>
+</html>
